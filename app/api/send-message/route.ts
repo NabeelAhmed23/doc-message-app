@@ -6,7 +6,12 @@ export async function POST(request: Request) {
   console.log(request.headers.get("x-real-ip"));
 
   if (!message) {
-    return NextResponse.json({ error: "Message is required" }, { status: 403 });
+    return NextResponse.json(
+      {
+        error: "Message is required. ip = " + request.headers.get("x-real-ip"),
+      },
+      { status: 403 }
+    );
   }
 
   const transporter = nodeMailer.createTransport({
