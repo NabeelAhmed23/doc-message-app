@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import nodeMailer from "nodemailer";
 
 export async function POST(request: NextRequest) {
@@ -9,11 +9,17 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Message is required." }, { status: 403 });
   }
 
-  const ipAddress = request.headers.get("x-real-ip");
+  const ipAddress =
+    process.env.NODE_ENV === "development"
+      ? "127.0.0.1"
+      : request.headers.get("x-real-ip");
 
   if (!ipAddress) {
-    return NextResponse.json(
-      { error: "Something went wrong!" },
+    return Response.json(
+      {
+        error:
+          "There was error with your location. Please try again with other device.",
+      },
       { status: 500 }
     );
   }
