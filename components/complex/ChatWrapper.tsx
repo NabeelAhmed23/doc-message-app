@@ -10,7 +10,7 @@ function ChatWrapper() {
         <PopoverTrigger asChild>
           <ChatButton />
         </PopoverTrigger>
-        <PopoverContent className="mr-4 w-[460px] mb-4 py-8 px-6 ">
+        <PopoverContent className="mr-4 w-[460px] mb-1 py-8 px-6 ">
           <ChatForm />
         </PopoverContent>
       </Popover>

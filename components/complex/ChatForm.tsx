@@ -19,7 +19,8 @@ function ChatForm() {
       body: JSON.stringify({ message }),
     });
     const data = await res.json();
-    if (res.status === 403) {
+    console.log(res);
+    if (res.status !== 200) {
       toast({
         variant: "destructive",
         title: "Error!",

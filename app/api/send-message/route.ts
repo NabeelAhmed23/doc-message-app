@@ -1,15 +1,32 @@
-import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { NextRequest, NextResponse } from "next/server";
 import nodeMailer from "nodemailer";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const { message } = await request.json();
-  console.log(request.headers.get("x-real-ip"));
 
   if (!message) {
+    return Response.json({ error: "Message is required." }, { status: 403 });
+  }
+
+  const ipAddress = request.headers.get("x-real-ip");
+
+  if (!ipAddress) {
     return NextResponse.json(
-      {
-        error: "Message is required. ip = " + request.headers.get("x-real-ip"),
-      },
+      { error: "Something went wrong!" },
+      { status: 500 }
+    );
+  }
+
+  const record = await prisma.message.findMany({
+    where: {
+      ipAddress,
+    },
+  });
+
+  if (record) {
+    return Response.json(
+      { error: "You can only send one message per day." },
       { status: 403 }
     );
   }
@@ -37,7 +54,21 @@ export async function POST(request: Request) {
     text: emailUser.message,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    const saveMessagePromise = prisma.message.create({
+      data: {
+        message,
+        ipAddress,
+      },
+    });
 
-  return Response.json({ message: "Message has been sent successfully." });
+    const emailSendPromise = transporter.sendMail(mailOptions);
+
+    await Promise.all([saveMessagePromise, emailSendPromise]);
+
+    return Response.json({ message: "Message has been sent successfully." });
+  } catch (error) {
+    console.log(error);
+    return Response.json({ error: "Something went wrong!" }, { status: 500 });
+  }
 }
